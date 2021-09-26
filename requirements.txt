@@ -1,0 +1,6 @@
+cvxpy==0.4.11
+numpy==1.11.0
+scikit_image==0.10.1
+matplotlib==1.5.1
+scipy==1.0.0rc1
+skimage==0.0

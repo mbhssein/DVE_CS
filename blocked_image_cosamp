@@ -1,0 +1,46 @@
+import numpy as np
+import cv2
+import skimage
+import csv
+from CoSaMP import cosamp
+from time import time
+from Get_Blocks import getBlocks
+from sklearn.decomposition import MiniBatchDictionaryLearning
+
+
+
+tstart = time()
+Sprasity = 30000
+epsilon=1e-100
+BLOCK_SIZE = 64
+
+img = cv2.imread('lib.jpg',0) # Read image here
+out = cv2.normalize(img.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
+noisy_image = skimage.img_as_ubyte(skimage.util.random_noise(out, mode='s&p', seed=None, clip=True, amount= 0.99))
+
+reader = csv.reader(open("foo.csv", "rb"), delimiter=",")
+x = list(reader)
+
+
+data = np.asarray(x, dtype=np.float32)
+
+print data.shape
+data = data.reshape(data.shape[0], -1)
+
+dico = MiniBatchDictionaryLearning(n_components=300, alpha=1, n_iter=40,
+                                        fit_algorithm='cd', batch_size=100,
+                                        transform_alpha=5.0)
+
+
+dico.fit(data)
+V = dico.components_
+
+Dict2 = data.transpose((1, 0))
+sum = 0
+
+
+for pos in range(10):
+    frame = data[pos, :].reshape(1, -1)
+    code = dico.transform(data)
+    np.concatenate((code, V), axis=0)
+    restored = cosamp(code, V, Sprasity,epsilon)
